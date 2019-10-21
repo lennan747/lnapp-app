@@ -34,6 +34,25 @@ http.interceptor.response(async (response) => {
 			title: '请稍后重试',
 			icon: 'none'
 		})
+		return false;
+	}
+	
+	// 401
+	if(response.statusCode === 401){
+		uni.showToast({
+			title: response.data.message,
+			icon: 'none'
+		})
+		return false;
+	}
+	
+	// 442
+	if(response.statusCode === 422){
+		uni.showToast({
+			title: response.data.message,
+			icon: 'none'
+		})
+		return false;
 	}
 	return response
 }, (response) => {

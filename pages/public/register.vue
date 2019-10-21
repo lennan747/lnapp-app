@@ -21,24 +21,30 @@
 							<input type="number" :value="verificationCode" placeholder="请输入验证码" maxlength="4" data-key="verificationCode"
 							 @input="inputChange" />
 						</view>
-						<view class="bt-code" @tap="getCaptchaCode"><text>获取验证码</text></view>
+						<view class="bt-code" @tap="getCaptchaCode"><text>{{ getCodeText }}</text></view>
 					</view>
 
 				</view>
 				<view class="input-item">
 					<text class="tit">密码</text>
-					<input type="mobile" value="" placeholder="8-18位不含特殊字符的数字、字母组合" placeholder-class="input-empty" maxlength="20"
-					 password data-key="password" @input="inputChange" @confirm="toLogin" />
+					<input type="mobile" :value="password" placeholder="8-18位不含特殊字符的数字、字母组合" placeholder-class="input-empty" maxlength="20"
+					 password data-key="password" @input="inputChange" />
+				</view>
+				
+				<view class="input-item">
+					<text class="tit">确认密码</text>
+					<input type="mobile" :value="surePassword" placeholder="8-18位不含特殊字符的数字、字母组合" placeholder-class="input-empty" maxlength="20"
+					 password data-key="surePassword" @input="inputChange" />
 				</view>
 			</view>
 			<button class="confirm-btn" @click="toRegister" :disabled="registering">注册</button>
 		</view>
 		<uni-popup ref="popup" type="center">
 			<view class="captcha-code">
-				<input type="number" maxlength="4" placeholder="验证码">
+				<input type="text" maxlength="6" placeholder="验证码" data-key="captchaCode" :value="captchaCode" @input="inputChange">
 				<image @click="getCaptchaCode()" :src="captcha.imageContent"></image>
 			</view>
-			<view class="code-tip"><view class="leo-btn">确定</view></view>
+			<view class="code-tip" @tap="getPhoneCode()"><view class="leo-btn">确定</view></view>
 		</uni-popup>
 	</view>
 </template>
@@ -48,27 +54,28 @@
 		mapMutations
 	} from 'vuex';
 	import uniPopup from "@/components/uni-popup/uni-popup.vue"
-	import { getCaptchaCode } from '@/api/register'
+	import { getCaptchaCode,getPhoneCode,register } from '@/api/register'
 	export default {
-		components: {
-			uniPopup
-		},
+		components: { uniPopup },
 		data() {
 			return {
-				mobile: '',
-				password: '',
-				verificationCode: '',
-				captcha: {
+				mobile: '',                                          // 手机号
+				password: '',                                        // 密码
+				surePassword: '',                                    // 确认mima
+				verificationCode: '',                                // 收到的短信验证码
+				verification: '',                                    // 验证码信息
+				captchaCode: '',                                     // 输入图片验证码
+				captcha: {                                           // 图片验证码信息
 					imageContent: '../../static/captcha.jpg',
 					captchaKey: '',
 					expiredAt: ''
 				},
-				registering: false
+				registering: false,
+				getCodeText: '获取验证码',                           // 验证码按钮文本
+				getCodeisWaiting: false                             // 等待获取验证码
 			}
 		},
-		onLoad() {
-
-		},
+		onLoad() {},
 		methods: {
 			...mapMutations(['login']),
 			inputChange(e) {
@@ -79,9 +86,49 @@
 				uni.navigateBack();
 			},
 			async toRegister() {
-
+				// 手机号验证码
+				if(!this.$util.isMobile(this.mobile) || this.$util.isNullOrEmpty(this.mobile)){
+					this.$api.msg('请输入正确的手机号')
+					return false;
+				}
+				// 验证验证码
+				if(this.$util.isNullOrEmpty(this.verificationCode)){
+					this.$api.msg('请输入短信验证码');
+					return false;
+				}
+				
+				// 验证密码格式
+				if(!this.$util.checkPwd(this.password)){
+					this.$api.msg('密码为8~20位数字和字母组合')
+					return false;
+				}
+				
+				// 密码确认
+				if(this.password !== this.surePassword){
+					this.$api.msg('两次输入的密码不一致')
+					return false;
+				}
+				
+				this.registering = true;
+				// 注册API
+				let response = await register({
+					phone: this.mobile,
+					password: this.password,
+					verificationKey: this.verification.key,
+					verificationCode: this.verificationCode
+				})
+				
+				if(response.statusCode === 201){
+					this.$api.msg('注册成功');
+				}
 			},
+			// 获取图片验证码
 			async getCaptchaCode() {
+				// 等待接收验证码
+				if(this.getCodeisWaiting){
+					return;
+				}
+				// 手机号验证码
 				if(!this.$util.isMobile(this.mobile) || this.$util.isNullOrEmpty(this.mobile)){
 					uni.showToast({
 						title: '请输入正确的手机号',
@@ -91,20 +138,52 @@
 				}
 				// 获取图片验证码
 				let response = await getCaptchaCode(this.mobile);
+				// 获取图片验证码成功
 				if(response.statusCode === 201){
 					this.captcha.imageContent = response.data.captcha_image_content
 					this.captcha.captchaKey   = response.data.captcha_key
 					this.captcha.expiredAt    =  response.data.expired_at
 					this.$refs.popup.open()
 				}
-				
-				// if(response.statusCode !== 201){
-				// 	uni.showToast({
-				// 		title: '获取验证失败',
-				// 		icon: 'none'
-				// 	})
-				// }
-			}
+			},
+			// 获取手机验证码
+			async getPhoneCode(){
+				console.log(this.captchaCode);
+				if(this.$util.isNullOrEmpty(this.captchaCode)){
+					uni.showToast({
+						title: '请输入右图验证码',
+						icon: 'none'
+					});
+					return false;
+				}
+				// 获取手机验证码成功
+				let response = await getPhoneCode({captchaKey: this.captcha.captchaKey,captchaCode: this.captchaCode});
+				if(response.statusCode === 201){
+					this.getCodeText = "获取中...";
+					this.verification = response.data;
+					this.getCodeisWaiting = true;
+					this.setTimer();
+					this.$refs.popup.close()
+				}
+			},
+			Timer() {},
+			// 重新获取验证码倒计时
+			setTimer() {
+				let holdTime = 60;
+				this.getCodeText = "重新获取(60)"
+				this.Timer = setInterval(() => {
+					if (holdTime <= 0) {
+						this.getCodeisWaiting = false;
+						this.getCodeBtnColor = "#ffffff";
+						this.getCodeText = "获取验证码"
+						clearInterval(this.Timer);
+						return;
+					}
+					this.getCodeText = "重新获取(" + holdTime + ")"
+					holdTime--;
+			
+				}, 1000)
+			},
 		},
 
 	}
