@@ -2,7 +2,6 @@ import Request from '@/common/request'
 
 const http = new Request()
 
-
 // 全局设置
 http.setConfig((config) => {
 	config.baseUrl = 'http://lnapp.cam/api'
@@ -11,7 +10,6 @@ http.setConfig((config) => {
 	}
 	return config
 })
-
 
 // 自定义验证器
 http.validateStatus = (statusCode) => {

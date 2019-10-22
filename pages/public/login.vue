@@ -113,7 +113,7 @@
 				// #ifdef H5
 				let url = 'https://open.weixin.qq.com/connect/oauth2/authorize?';
 				url += 'appid=wx2ca90d88ee9c5205&';
-				url += 'redirect_uri=http://192.168.56.1:8889/pages/public/login&';
+				url += 'redirect_uri=http://192.168.10.1:8889/pages/public/login&';
 				url += 'response_type=code&'
 				url += 'scope=snsapi_userinfo&';
 				url += 'state=STATE#wechat_redirect';
