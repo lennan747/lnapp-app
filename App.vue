@@ -3,21 +3,17 @@
 	 * vuex管理登陆状态，具体可以参考官方登陆模板示例
 	 */
 	import { mapMutations } from 'vuex';
+	import { getToken,getexpiresIn } from 'utils/auth'
 	export default {
 		methods: {
-			...mapMutations(['login'])
+			...mapMutations(['SET_LOGIN'])
 		},
 		onLaunch: function() {
-			let userInfo = uni.getStorageSync('userInfo') || '';
-			if(userInfo.id){
-				//更新登陆状态
-				uni.getStorage({
-					key: 'userInfo',
-					success: (res) => {
-						this.login(res.data);
-					}
-				});
+			let token = getToken();
+			if(token){
+				this.SET_LOGIN(true);
 			}
+			
 			// #ifdef MP-WEIXIN
 			uni.login({provider: 'weixin'}).then((res) => {
 				console.log(res)

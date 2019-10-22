@@ -5,10 +5,10 @@
 			<image class="bg" src="/static/user-bg.jpg"></image>
 			<view class="user-info-box">
 				<view class="portrait-box">
-					<image class="portrait" :src="userInfo.portrait || '/static/missing-face.png'"></image>
+					<image class="portrait" :src="userInfo.avatar || '/static/missing-face.png'"></image>
 				</view>
 				<view class="info-box">
-					<text class="username">{{userInfo.nickname || '游客'}}</text>
+					<text class="username">{{userInfo.name || '游客'}}</text>
 				</view>
 			</view>
 			<view class="vip-card-box">

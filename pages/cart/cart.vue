@@ -109,7 +109,7 @@
 			}
 		},
 		computed:{
-			...mapState(['hasLogin'])
+			...mapState(['hasLogin','token'])
 		},
 		methods: {
 			//请求数据

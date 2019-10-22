@@ -41,20 +41,28 @@
 				忘记密码?
 			</view>
 		</view>
+		
+		<view class="social-login">
+			<!-- #ifdef H5 -->
+			<view>
+				<uni-icons type="weixin" size="40" @click="wxLogin" color="rgb(36, 219, 90)"></uni-icons>
+				<view>微信登录</view>
+			</view>
+			<!-- #endif -->
+		</view>
+		
 		<view class="register-section">
 			还没有账号?
-			<view @click="wxLogin">微信登录</view>
 			<text @click="toRegist">马上注册</text>
 		</view>
 	</view>
 </template>
 
 <script>
-	import {  
-        mapMutations  
-    } from 'vuex';
-	
+	import { mapMutations,mapActions } from 'vuex';
+	import uniIcons from '@/components/uni-icons/uni-icons.vue'
 	export default{
+		components: {uniIcons},
 		data(){
 			return {
 				mobile: '',
@@ -62,11 +70,32 @@
 				logining: false
 			}
 		},
-		onLoad(){
-			
+		async onLoad(options){
+			let pages=getCurrentPages();
+			let prevPage=null;
+			if(pages.length>1){
+			       prevPage=pages[pages.length-2];
+			}
+			if(prevPage){
+				// #ifdef H5
+				uni.setStorageSync('prevPage','/'+ prevPage.route)
+				// #endif
+			}
+			// #ifdef H5
+			if(options.code){
+				uni.showLoading({
+					title: '登录中....'
+				})
+				await this.login({type:'weixinh5',code:options.code})
+				uni.hideLoading();
+				uni.switchTab({
+				    url: uni.getStorageSync('prevPage')
+				});
+			}
+			// #endif
 		},
 		methods: {
-			...mapMutations(['login']),
+			...mapActions(['login']),
 			inputChange(e){
 				const key = e.currentTarget.dataset.key;
 				this[key] = e.detail.value;
@@ -80,8 +109,17 @@
 					url: '/pages/public/register'
 				})
 			},
-			async wxLogin(){
-				console.log(111)
+			wxLogin(){
+				// #ifdef H5
+				let url = 'https://open.weixin.qq.com/connect/oauth2/authorize?';
+				url += 'appid=wx2ca90d88ee9c5205&';
+				url += 'redirect_uri=http://192.168.56.1:8889/pages/public/login&';
+				url += 'response_type=code&'
+				url += 'scope=snsapi_userinfo&';
+				url += 'state=STATE#wechat_redirect';
+				console.log(url);
+				window.location.href=url;
+				// #endif
 			},
 			async toLogin(){
 				this.logining = true;
@@ -248,5 +286,12 @@
 			color: $font-color-spec;
 			margin-left: 10upx;
 		}
+	}
+	.social-login{
+		display: flex;
+		justify-content: center;
+		text-align: center;
+		font-size: $font-sm;
+		margin-top: 100upx;
 	}
 </style>

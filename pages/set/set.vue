@@ -38,7 +38,7 @@
 
 <script>
 	import {  
-	    mapMutations  
+	    mapActions  
 	} from 'vuex';
 	export default {
 		data() {
@@ -47,7 +47,7 @@
 			};
 		},
 		methods:{
-			...mapMutations(['logout']),
+			...mapActions(['logout']),
 
 			navTo(url){
 				this.$api.msg(`跳转到${url}`);
