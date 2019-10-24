@@ -22,6 +22,7 @@
 </template>
 
 <script>
+	import { getUserAddresses } from '@/api/user' 
 	export default {
 		data() {
 			return {
@@ -45,9 +46,14 @@
 				]
 			}
 		},
-		onLoad(option){
+		async onLoad(option){
 			console.log(option.source);
 			this.source = option.source;
+			// 获取
+			let response = await getUserAddresses();
+			if(response.statusCode == 200){
+				
+			}
 		},
 		methods: {
 			//选择地址

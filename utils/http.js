@@ -1,10 +1,14 @@
 import Request from '@/common/request'
+import { getToken } from '@/utils/auth'
 
-const http = new Request()
+const api_host = 'http://lnapp.cam/api'
+
+
+const http     = new Request()
 
 // 全局设置
 http.setConfig((config) => {
-	config.baseUrl = 'http://lnapp.cam/api'
+	config.baseUrl = api_host
 	config.header = {
 		...config.header
 	}
@@ -20,6 +24,12 @@ http.validateStatus = (statusCode) => {
 http.interceptor.request((config, cancel) => {
 	config.header = {
 		...config.header,
+	}
+	
+	// 存在token 
+	let token = getToken()
+	if(token){
+		config.header.Authorization = 'Bearer ' + token
 	}
 	return config
 })
@@ -52,6 +62,9 @@ http.interceptor.response(async (response) => {
 		})
 		return false;
 	}
+	
+	// token 过期
+	
 	return response
 }, (response) => {
 	console.log('error');

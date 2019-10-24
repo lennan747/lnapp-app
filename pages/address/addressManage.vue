@@ -93,7 +93,6 @@
 			switchChange(e) {
 				this.addressData.default = e.detail;
 			},
-
 			//地图选择地址
 			chooseLocation() {
 				uni.chooseLocation({
